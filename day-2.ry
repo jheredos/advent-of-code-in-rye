@@ -1,0 +1,61 @@
+data := readFile("./data/day-2.txt")
+
+// PART ONE
+maxes := {
+  red: 12,
+  green: 13,
+  blue: 14
+}
+
+maybeGetId := line => {
+  idPart := split(line, ":")[0]
+  id := split(idPart, " ")[1] then Int
+  rounds := split(line, ":")[1] then split(_, ";")
+
+  overMax := amount => {
+    parts := split(amount, " ") where #_
+    n := Int(parts[0])
+    color := parts[1]
+
+    n > maxes[color]
+  }
+
+  impossible := round => split(round, ",") find overMax
+  impossibleRound := rounds find impossible 
+  
+  id unless impossibleRound? else 0
+}
+
+data
+  then split(_, "\n")
+  each maybeGetId
+  then sum
+  then print
+
+
+// PART TWO
+getPower := line => {
+  maxes := {}
+
+  split(line, ":")[1]
+    then split(_, ";")            // split rounds
+    each split(_, ",")            // split amounts in each round
+    then flat
+    each amount => {
+      parts := split(amount, " ") where #_
+
+      n := Int(parts[0])
+      color := parts[1]
+
+      maxes[color] = max(n, maxes[color]) | n
+    }
+
+  product := _[0] * product(_[1..]) if #_ else 1
+  values(maxes) then product
+}
+
+data
+  then split(_, "\n")
+  each getPower
+  then sum
+  then print

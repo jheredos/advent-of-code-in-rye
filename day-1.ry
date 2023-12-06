@@ -1,0 +1,64 @@
+data := readFile("./data/day-1.txt")
+
+// PART ONE
+isDigit := Int(_) in { ..10 }
+
+getDigits := line => {
+  chars := split(line, "")
+
+  findDigit := cs => cs find isDigit then Int
+
+  first := findDigit(chars)
+  last := reverse(chars) then findDigit
+
+  first * 10 + last
+}
+
+data
+  then split(_, "\n")
+  each getDigits
+  then sum
+  then print
+
+
+// PART TWO
+numbers := {
+  zero: 0,
+  one: 1,
+  two: 2,
+  three: 3,
+  four: 4,
+  five: 5,
+  six: 6,
+  seven: 7,
+  eight: 8,
+  nine: 9
+}
+
+getNumbers := line => {
+  getNum :=
+    (Int(_[0]) if isDigit(_[0]))
+    | numbers[_[..3]]
+    | numbers[_[..4]]
+    | numbers[_[..5]]
+
+  var first := fail
+  var last := fail
+
+  for i in ..#line {
+    n := getNum(line[i..])
+    
+    if n? {
+      unless first?: first = n
+      last = n
+    } 
+  }
+
+  first * 10 + last
+}
+
+data
+  then split(_, "\n")
+  each getNumbers
+  then sum
+  then print
