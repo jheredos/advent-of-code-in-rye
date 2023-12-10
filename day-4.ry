@@ -1,0 +1,57 @@
+data := readFile("./data/day-4.txt")
+
+splitNums := str => split(str, " ")
+  where #_
+  then Set
+
+getNumWinners := line => {
+  numPart := split(line, ":")[1]
+
+  winners := split(numPart, "|")[0] then splitNums
+  nums := split(numPart, "|")[1] then splitNums
+
+  #intersection(winners, nums)
+}
+
+// PART ONE
+getPoints := line => {
+  numWinners := getNumWinners(line)
+  2 ^ (numWinners - 1) if numWinners > 0 else 0
+}
+
+data
+  then split(_, "\n")
+  each getPoints
+  then sum
+  then print
+
+
+// PART TWO
+getCardNum := line => 
+  split(line, ":")[0] 
+  then split(_, " ")[-1]
+  then Int
+
+getNumberOfCards := data => {
+  copies := {}
+  lines := split(data, "\n")
+
+  1..(#lines + 1) each i => { copies[i] = 1 }
+
+  lines each line => {
+    cardNum := getCardNum(line)
+    numWinners := getNumWinners(line)
+    copiesOfCard := copies[cardNum]
+
+    1..(numWinners + 1) 
+      each _ + cardNum
+      each n => {
+        if copies[n]?:
+          copies[n] += copiesOfCard
+      }
+  }
+
+  values(copies) then sum
+}
+
+getNumberOfCards(data) then print

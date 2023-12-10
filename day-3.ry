@@ -1,0 +1,112 @@
+data := readFile("./data/day-3.txt")
+
+lines := data 
+  then split(_, "\n") 
+  each split(_, "")
+
+digits := { ..10 } each String
+isDigit := _ in digits
+
+// PART ONE
+isSymbol := !isDigit(_) and _ != "."
+
+isPartNum := (row, col, len) => {
+  symbolAbove := 
+    lines[row - 1][(col-1)..(col+len+1)] if row > 0 else [] 
+    where _?
+    find isSymbol
+
+  if symbolAbove: return true
+
+  symbolBefore := lines[row][col - 1] then isSymbol
+  if symbolBefore: return true
+
+  symbolAfter := lines[row][col + len] then isSymbol
+  if symbolAfter: return true
+
+  symbolBelow :=
+    lines[row + 1][(col-1)..(col+len+1)] | [] 
+    where _?
+    find isSymbol
+
+  if symbolBelow: return true
+
+  return false
+}
+
+getNumStarts := line => 
+  ..#line where isDigit(line[_]) and (_ == 0 or !isDigit(line[_ - 1]))
+
+
+getNumEnds := line => 
+  ..#line where isDigit(line[_]) and (_ == #line - 1 or !isDigit(line[_ + 1]))
+
+
+getTotalForLine := idx => {
+  line := lines[idx]
+
+  numStarts := getNumStarts(line)
+  numEnds := getNumEnds(line)
+
+  joinNum := (start, end) => 
+    line[start..(end + 1)]
+      then join(_, "");
+    
+  ..#numStarts 
+    each i => {
+      n := joinNum(numStarts[i], numEnds[i])
+      Int(n) if isPartNum(idx, numStarts[i], #n) else 0
+    } 
+    then sum
+}
+
+..#lines
+  each getTotalForLine 
+  then sum
+  then print
+
+
+// PART TWO
+scanForNums := (row, cols) => {
+  line := lines[row] | []
+
+  numStarts := getNumStarts(line)
+  numEnds := getNumEnds(line)
+
+  numCols := ..#numStarts 
+    each { numStarts[_]..(numEnds[_]+1) }
+
+  toNum := colSet => {
+    start := min(List(colSet))
+    end := max(List(colSet))
+    line[start..(end+1)] then join(_, "") then Int
+  }
+
+  numCols where #intersection(_, cols) each toNum
+}
+
+getGearRatio := (row, col) => {
+  above := scanForNums(row - 1, { (col-1)..(col+2) })
+  left := scanForNums(row, { col - 1 })
+  right := scanForNums(row, { col + 1 })
+  below := scanForNums(row + 1, { (col-1)..(col+2) })
+
+  all := above + left + right + below
+  all[0] * all[1] if #all == 2 else 0
+}
+
+sumGearRatios := row => {
+  line := lines[row];
+
+  ..#line 
+    where line[_] == "*"
+    each getGearRatio(row, _)
+    then sum
+}
+
+..#lines
+  each sumGearRatios
+  then sum
+  then print
+
+// 82301120
